@@ -1,0 +1,39 @@
+# SQLite version 3.x
+#   gem install sqlite3
+#
+#   Ensure the SQLite 3 gem is defined in your Gemfile
+#   gem 'sqlite3'
+development:
+  adapter: sqlserver
+  host: 192.168.1.202
+  database: pris
+  username: sa
+  password: sa
+  encoding: utf8
+  timeout: 30000
+  job_user: user
+  job_password: pass
+  email_user: user@gmail.com
+  email_password: pass
+
+# Warning: The database defined as "test" will be erased and
+# re-generated from your development database when you run "rake".
+# Do not set this db to the same as development or production.
+test:
+  adapter: sqlserver
+  host: localhost
+  database: pris
+  username: sa
+  password: sa
+  encoding: utf8
+  timeout: 30000
+
+production:
+  adapter: sqlserver
+  host: localhost
+  database: pris
+  username: sa
+  password: sa
+  encoding: utf8
+  timeout: 30000
+
