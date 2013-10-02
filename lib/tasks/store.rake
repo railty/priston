@@ -1,13 +1,6 @@
 require 'prislib'
 
 namespace :store do
-        desc "test"
-        task :test do
-                puts "ssss"
-		logger.info "aaaaaaaaaaaaaa"
-		logger.info "aaaaaaaaaaaaaa"		
-        end
-	
         desc "reboot"
         task :reboot do
                 reboot
@@ -30,6 +23,7 @@ namespace :store do
 
         desc "job every 5 minutes"
 	task :minutes_5_job do
+		refresh_pos
 		setip
 		connect_hq
 	end

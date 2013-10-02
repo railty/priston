@@ -1,7 +1,5 @@
 $sqldata_path = "D:\\SQLData\\"
 $data_path = "D:\\Pris\\Data\\"
-$server_data_path = "\\\\hqsvr2\\pris\\data\\"
-$server_script_path = "\\\\hqsvr2\\pris\\scripts\\"
 
 def logger
 	Rails.logger = Logger.new("log/pris_#{hostname}_#{Time.now.strftime("%Y_%m_%d") }.log") if Rails.logger == nil
@@ -78,7 +76,7 @@ def setip
 end
 
 def connect_hq
-	cmd = "rasdial hq #{$hq_user} #{$hq_password}"
+	cmd = "rasdial hq #{config['hq_user']} #{config['hq_password']}"
 	result = `#{cmd} 2>&1`
 	logger.info(result)
 end
@@ -121,19 +119,18 @@ end
 def backup_pris
 	t=Time.now
 	dt = "#{t.year}_#{t.month}_#{t.day}"
-	host = get_hostname
+	host = hostname
 
 	filename = "#{$data_path}pris_#{host}_full_#{dt}.bak"
 	compress_filename = "#{filename}.7z"
-	server_data_file = "#{$server_data_path}pris_#{host}_full_#{dt}.bak.7z"
 
-	File.delete filename if File.exist? filename
-	File.delete compress_filename if File.exist? compress_filename
+	#File.delete filename if File.exist? filename
+	#File.delete compress_filename if File.exist? compress_filename
 
 	sql = "BACKUP DATABASE [Pris] TO DISK = N'#{filename}' WITH INIT, NAME = N'Pris Full Database Backup at #{dt}'"
 	logger.info("making full backup #{filename} on #{host}")
-	run_sql_cmd(sql)
-	compress(filename, compress_filename)
+	#run_sql_cmd(sql)
+	#compress(filename, compress_filename)
 	g_upload(compress_filename, "pris_#{host}_full_#{dt}")
 end
 
@@ -159,4 +156,8 @@ end
 
 def delete_job(job)
 	run("schtasks /delete /tn #{job} /f")
+end
+
+def refresh_pos
+	run_sql_cmd("use pris; exec refresh_pos")
 end

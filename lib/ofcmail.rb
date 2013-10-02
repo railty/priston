@@ -3,17 +3,17 @@ require 'gmail'
 require "google_drive"
 
 def g_upload(file, label)
-	session = GoogleDrive.login($account, $password)
+	session = GoogleDrive.login(config['email_user'], config['email_password'])
 	session.upload_from_file(file, label, :convert => false)
 end
 
 def g_download(file, label)
-	session = GoogleDrive.login($account, $password)
+	session = GoogleDrive.login(config['email_user'], config['email_password'])
 	file = session.file_by_title(label).download_to_file(file)
 end
 
 def g_delete(label)
-	session = GoogleDrive.login($account, $password)
+	session = GoogleDrive.login(config['email_user'], config['email_password'])
 	session.file_by_title(label).delete
 end
 
