@@ -1,22 +1,36 @@
-require 'rubygems'
-require 'gmail'
-require "google_drive"
+#require 'gmail'
+#require "google_drive"
 
 def g_upload(file, label)
+	logger.info("uploading #{file} into #{label}")
+	g_delete(label)
 	session = GoogleDrive.login(config['email_user'], config['email_password'])
 	session.upload_from_file(file, label, :convert => false)
 end
 
 def g_download(file, label)
+	logger.info("downloading #{label} into #{file}")
 	session = GoogleDrive.login(config['email_user'], config['email_password'])
 	file = session.file_by_title(label).download_to_file(file)
 end
 
 def g_delete(label)
+	logger.info("delete #{label} from gdrive")
 	session = GoogleDrive.login(config['email_user'], config['email_password'])
-	session.file_by_title(label).delete
+	file = session.file_by_title(label)
+	if file == nil then
+		return false
+	else
+		file.delete
+		return true
+	end
 end
 
+def g_rename(old_label, new_label)
+	logger.info("rename #{old_label} to #{new_label} in gdrive")
+	session = GoogleDrive.login(config['email_user'], config['email_password'])
+	session.file_by_title(old_label).title = new_label
+end
 
 #in case there are more reports, use the latest one
 #return a string in 2011-01-31 format
@@ -40,7 +54,8 @@ def get_report_date(folder)
 	return date
 end
 
-def send_email(recipients, subject_text, body_text, attachments=nil)
+def send_email(recipients, subject_text, body_text, attachments=[])
+	logger.info("email #{recipients}: #{subject_text}")
 	gmail = Gmail.connect(config['email_user'], config['email_password'])
 	gmail.deliver do
 		to recipients

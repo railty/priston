@@ -1,10 +1,9 @@
 require 'prislib'
 
 namespace :job do
-	desc "create windows job"
-	task :create, :job do |t, args|
-		job = args[:job].downcase
-		create_job(job)
+	desc "create windows job by rake job:create[reboot, user, pass]"
+	task :create, :job, :user, :password do |t, args|
+		create_job(args[:job], args[:user], args[:password])
 	end
 	
 	desc "delete windows job"

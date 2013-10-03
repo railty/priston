@@ -116,10 +116,9 @@ def copy_pos_data
 	run_sql_cmd("Pris.Dbo.Build_Inventory")
 end
 
-def backup_pris
+def backup_pris(host=hostname, db='Pris')
 	t=Time.now
 	dt = "#{t.year}_#{t.month}_#{t.day}"
-	host = hostname
 
 	filename = "#{$data_path}pris_#{host}_full_#{dt}.bak"
 	compress_filename = "#{filename}.7z"
@@ -127,7 +126,7 @@ def backup_pris
 	File.delete filename if File.exist? filename
 	File.delete compress_filename if File.exist? compress_filename
 
-	sql = "BACKUP DATABASE [Pris] TO DISK = N'#{filename}' WITH INIT, NAME = N'Pris Full Database Backup at #{dt}'"
+	sql = "BACKUP DATABASE [#{db}] TO DISK = N'#{filename}' WITH INIT, NAME = N'Pris Full Database Backup at #{dt}'"
 	logger.info("making full backup #{filename} on #{host}")
 	run_sql_cmd(sql)
 	compress(filename, compress_filename)
@@ -135,6 +134,7 @@ def backup_pris
 end
 
 def restore_pris(host)
+	return true if check_pris_db_status(host)
 	today_str = (Time.now).strftime("%Y_%-m_%-d")
 	logger.info("restore database")
 	latest_full_bak_7z = "#{$data_path}pris_#{host}_full_#{today_str}.bak.7z"
@@ -148,10 +148,20 @@ def restore_pris(host)
 	decompress(latest_full_bak_7z)		
 	run_sql_cmd("RESTORE DATABASE [#{host}] FROM DISK = N'D:\\Temp\\#{full_name}' WITH MOVE N'Pris' TO N'D:\\SQLDATA\\#{host}.mdf', MOVE N'Pris_log' TO N'D:\\SQLDATA\\#{host}_1.ldf';")
 	run_sql_cmd("use #{host};\r\ngo\r\nsp_change_users_login 'update_one', 'po', 'po' ;\r\ngo\r\n")
+	
+	status = check_pris_db_status(host)
+	if status then
+		g_rename("pris_#{host}_full_#{today_str}", "pris_#{host}_full_#{today_str}_success")
+	else
+		g_rename("pris_#{host}_full_#{today_str}", "pris_#{host}_full_#{today_str}_failed")
+	end
+	return status
 end
 
-def create_job(job)
-	run("schtasks /create /xml jobs\\#{job}.xml /tn #{job} /ru #{config['job_user']} /rp #{config['job_password']}")
+def create_job(job, u = nil, p = nil)
+	u = config['job_user'] if u==nil
+	p = config['job_password'] if p==nil
+	run("schtasks /create /xml jobs\\#{job}.xml /tn #{job} /ru #{u} /rp #{p}")
 end
 
 def delete_job(job)
@@ -160,4 +170,16 @@ end
 
 def refresh_pos
 	run_sql_cmd("use pris; exec refresh_pos")
+end
+
+def check_pris_db_status(db)
+	sql = "Select Max(Date) From #{db}.dbo.POS_Sales;"
+	result = run_sql_cmd(sql)
+	date_str = result.scan(/\d\d\d\d-\d\d-\d\d/)[0]
+	
+	today_str = (Time.now).strftime("%Y-%m-%d")
+	yesterday_str = (Time.now-86400).strftime("%Y-%m-%d")
+
+	return true if date_str==today_str or date_str==yesterday_str
+	return false		
 end

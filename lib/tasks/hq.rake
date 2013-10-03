@@ -2,37 +2,29 @@ require 'prislib'
 require 'ofcmail'
 
 namespace :hq do
-	task :test do
-		send_email('zxning@gmail.com', 'hq db status', 'body')
 
+	desc "Watch database status"
+	task :test do
+		session = GoogleDrive.login(config['email_user'], config['email_password'])
+		for file in session.files
+			p file.title
+			p file
+		end
+
+g_delete('pris_alp_full_2013_10_3_failed')
+	
+		#backup_pris('alp', 'alp')
 	end
-		
+	
 	desc "Watch database status"
 	task :watch_status do
 
-		sql = "Select Top 5 Date, Product_ID, Quantity, Amount From ofm.dbo.POS_Sales Order By Date Desc;"
-		n = 3
 		body = ""
-		['alp', 'ofc', 'ofmm'].each do |store|
-			sql = "Select Top #{n} Date, Product_ID, Quantity, Amount From #{store}.dbo.POS_Sales Order By Date Desc;"
-			result = run_sql_cmd(sql)
-			date_str = result.scan(/\d\d\d\d-\d\d-\d\d/)[0]
-
-			today_str = (Time.now).strftime("%Y-%m-%d")
-			yesterday_str = (Time.now-86400).strftime("%Y-%m-%d")
-
-			if date_str==today_str or date_str==yesterday_str then
-				body = body + "#{store} OK\n"
+		['alp',  'ofmm'].each do |store|
+			if check_pris_db_status(store) then
+				body = body + "#{store} OK\n"				
 			else
-				body = body + "#{store} fail\n"
-				body = body + result
-				db_7z = "d:/pris/data/pris_#{store}_#{yesterday_str}.bak.7z"
-				if File.exist?(db_7z) then
-					sz = File.size(db_7z)/1000/1000
-					body = body + "file exist #{db_7z}, size #{sz}MB \n"
-				else
-					body = body + "file #{db_7z} not exist\n"
-				end
+				body = body + "#{store} failed\n"				
 			end
 		end
 		puts body
@@ -41,14 +33,25 @@ namespace :hq do
 
 	desc "restore pris database, use all for all stores"
 	task :restore_pris_dbs, :host do |t, args|
-		host = args[:host].downcase
+		host = args[:host]
+		host = 'all' if host == nil
+		host.downcase!
 		if host == 'all' then
-			['ofmm', 'alp'].each do|host|
-				restore_pris(host)
-			end
+			hosts = ['alp', 'ofmm'] 
 		else
-			restore_pris(host)
+			hosts = [host]
 		end
+		
+		body = ""
+		hosts.each do |store|
+			if restore_pris(store) then
+				body = body + "#{store} OK\n"
+			else
+				body = body + "#{store} failed\n"
+			end
+		end
+		puts body
+		send_email('shawn.ning@list4d.com', 'hq db status', body)
 	end
 end
 
