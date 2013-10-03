@@ -120,6 +120,8 @@ def backup_pris(host=hostname, db='Pris')
 	t=Time.now
 	dt = "#{t.year}_#{t.month}_#{t.day}"
 
+	return if g_exist?("pris_#{host}_full_#{dt}_success")
+
 	filename = "#{$data_path}pris_#{host}_full_#{dt}.bak"
 	compress_filename = "#{filename}.7z"
 

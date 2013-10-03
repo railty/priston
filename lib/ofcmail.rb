@@ -26,6 +26,18 @@ def g_delete(label)
 	end
 end
 
+def g_exist?(label)
+	session = GoogleDrive.login(config['email_user'], config['email_password'])
+	file = session.file_by_title(label)
+	if file == nil then
+		logger.info("#{label} not exist in gdrive")
+		return false
+	else
+		logger.info("#{label} exists in gdrive")
+		return true
+	end
+end
+
 def g_rename(old_label, new_label)
 	logger.info("rename #{old_label} to #{new_label} in gdrive")
 	session = GoogleDrive.login(config['email_user'], config['email_password'])
