@@ -2,6 +2,11 @@ require 'prislib'
 require 'ofcmail'
 
 namespace :hq do
+	task :test do
+		send_email('zxning@gmail.com', 'hq db status', 'body')
+
+	end
+		
 	desc "Watch database status"
 	task :watch_status do
 
@@ -35,10 +40,10 @@ namespace :hq do
 	end
 
 	desc "restore pris database, use all for all stores"
-	task :restore_pris, :host do |t, args|
+	task :restore_pris_dbs, :host do |t, args|
 		host = args[:host].downcase
 		if host == 'all' then
-			['ofmm', 'ofc', 'alp'].each do|host|
+			['ofmm', 'alp'].each do|host|
 				restore_pris(host)
 			end
 		else

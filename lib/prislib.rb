@@ -135,7 +135,7 @@ def backup_pris
 end
 
 def restore_pris(host)
-	today_str = (Time.now).strftime("%Y_%-m_%d")
+	today_str = (Time.now).strftime("%Y_%-m_%-d")
 	logger.info("restore database")
 	latest_full_bak_7z = "#{$data_path}pris_#{host}_full_#{today_str}.bak.7z"
 

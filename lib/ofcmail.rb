@@ -40,8 +40,8 @@ def get_report_date(folder)
 	return date
 end
 
-def send_email(recipients, subject_text, body_text, attachments)
-
+def send_email(recipients, subject_text, body_text, attachments=nil)
+	gmail = Gmail.connect(config['email_user'], config['email_password'])
 	gmail.deliver do
 		to recipients
 		subject subject_text
@@ -56,7 +56,7 @@ def send_email(recipients, subject_text, body_text, attachments)
 
 		puts "successfully sent mail to #{recipients}"
 	end
-
+	gmail.logout
 end
 
 def send_reports(recipients, reports, folder, subject, body)
