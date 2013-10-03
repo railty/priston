@@ -124,13 +124,13 @@ def backup_pris
 	filename = "#{$data_path}pris_#{host}_full_#{dt}.bak"
 	compress_filename = "#{filename}.7z"
 
-	#File.delete filename if File.exist? filename
-	#File.delete compress_filename if File.exist? compress_filename
+	File.delete filename if File.exist? filename
+	File.delete compress_filename if File.exist? compress_filename
 
 	sql = "BACKUP DATABASE [Pris] TO DISK = N'#{filename}' WITH INIT, NAME = N'Pris Full Database Backup at #{dt}'"
 	logger.info("making full backup #{filename} on #{host}")
-	#run_sql_cmd(sql)
-	#compress(filename, compress_filename)
+	run_sql_cmd(sql)
+	compress(filename, compress_filename)
 	g_upload(compress_filename, "pris_#{host}_full_#{dt}")
 end
 
