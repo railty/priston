@@ -13,10 +13,11 @@
 
 ActiveRecord::Schema.define(:version => 20131002000333) do
 
-  create_table "Categories", :id => false, :force => true do |t|
-    t.string "Category_ID",      :limit => 2
-    t.string "Category",         :limit => 50
-    t.string "Category_Chinese", :limit => 50
+  create_table "Categories", :primary_key => "Category_ID", :force => true do |t|
+    t.string "En_Name",     :limit => 20, :null => false
+    t.string "Ch_Name",     :limit => 50
+    t.string "Description"
+    t.binary "Picture"
   end
 
   create_table "Departments", :primary_key => "Department_ID", :force => true do |t|
@@ -275,6 +276,46 @@ ActiveRecord::Schema.define(:version => 20131002000333) do
     t.float  "MaxOnSaleQty",           :limit => 53
     t.string "Location_code2",         :limit => 32
   end
+
+  create_table "MSreplication_objects", :id => false, :force => true do |t|
+  end
+
+  add_index "MSreplication_objects", ["object_name"], :name => "ucMSreplication_objects"
+
+  create_table "MSreplication_subscriptions", :id => false, :force => true do |t|
+  end
+
+  add_index "MSreplication_subscriptions", ["publication", "publisher_db", "publisher", "subscription_type", "transaction_timestamp"], :name => "uc1MSReplication_subscriptions", :unique => true
+
+  create_table "MSsavedforeignkeycolumns", :id => false, :force => true do |t|
+  end
+
+  add_index "MSsavedforeignkeycolumns", ["program_name", "constraint_name", "parent_schema", "constraint_column_id"], :name => "ci_MSsavedforeignkeycolumns"
+  add_index "MSsavedforeignkeycolumns", ["timestamp"], :name => "nci_MSsavedforeignkeycolumns_timestamp"
+
+  create_table "MSsavedforeignkeyextendedproperties", :id => false, :force => true do |t|
+  end
+
+  add_index "MSsavedforeignkeyextendedproperties", ["program_name", "constraint_name", "parent_schema"], :name => "ci_MSsavedforeignkeyextendedproperties"
+  add_index "MSsavedforeignkeyextendedproperties", ["timestamp"], :name => "nci_MSsavedforeignkeyextendedproperties_timestamp"
+
+  create_table "MSsavedforeignkeys", :id => false, :force => true do |t|
+  end
+
+  add_index "MSsavedforeignkeys", ["program_name", "constraint_name", "parent_schema"], :name => "ci_MSsavedforeignkeys"
+  add_index "MSsavedforeignkeys", ["timestamp"], :name => "nci_MSsavedforeignkeys_timestamp"
+
+  create_table "MSsnapshotdeliveryprogress", :id => false, :force => true do |t|
+  end
+
+  add_index "MSsnapshotdeliveryprogress", ["progress_token_hash"], :name => "ci_MSsnapshotdeliveryprogress_progress_token_hash"
+  add_index "MSsnapshotdeliveryprogress", ["session_token"], :name => "nci_MSsnapshotdeliveryprogress_session_token"
+
+  create_table "MSsubscription_agents", :id => false, :force => true do |t|
+  end
+
+  add_index "MSsubscription_agents", ["id"], :name => "ucMSsubscription_agents_id"
+  add_index "MSsubscription_agents", ["publication", "publisher_db", "publisher", "subscription_type"], :name => "ucMSsubscription_agents", :unique => true
 
   create_table "OnSaleProduct", :id => false, :force => true do |t|
     t.string  "StartDate",  :limit => 10, :null => false
@@ -560,14 +601,20 @@ ActiveRecord::Schema.define(:version => 20131002000333) do
     t.string   "Source_ID",           :limit => 15
     t.string   "Second_Name"
     t.string   "Location_Code",       :limit => 32
+    t.string   "Location_Code2",      :limit => 32
     t.string   "Sub_Category",        :limit => 64
     t.string   "Category",            :limit => 64
     t.string   "General_Category",    :limit => 64
-    t.string   "Location_Code2",      :limit => 32
   end
 
   create_table "RFgen_ConnCheck", :id => false, :force => true do |t|
     t.integer "pid"
+  end
+
+  create_table "RankOFMM", :id => false, :force => true do |t|
+    t.string "Barcode",   :limit => 15
+    t.string "Rank"
+    t.string "Last_Rank"
   end
 
   create_table "Receiving", :id => false, :force => true do |t|
@@ -639,11 +686,10 @@ ActiveRecord::Schema.define(:version => 20131002000333) do
     t.string  "Active",        :limit => 2
   end
 
-  create_table "SubCategories", :id => false, :force => true do |t|
-    t.string "Sub_CategoryID",  :limit => 4
-    t.string "Category_ID",     :limit => 2
-    t.string "Sub_Category",    :limit => 50
-    t.string "Sub_Cat_Chinese", :limit => 50
+  create_table "SubCategories", :primary_key => "SubCategory_ID", :force => true do |t|
+    t.integer "Category_ID",                          :null => false
+    t.string  "SubCategoryName",        :limit => 50
+    t.string  "SubCategoryDescription"
   end
 
   create_table "Supplier_Products", :id => false, :force => true do |t|
@@ -679,6 +725,14 @@ ActiveRecord::Schema.define(:version => 20131002000333) do
     t.integer  "Receiving_Units",                 :null => false
   end
 
+  create_table "Temp3", :id => false, :force => true do |t|
+    t.string  "Prod_Num",  :limit => 15, :null => false
+    t.float   "Quantity",  :limit => 53
+    t.float   "Amount",    :limit => 53
+    t.decimal "Tax"
+    t.string  "Date_Sent", :limit => 10
+  end
+
   create_table "Temp_Summary", :id => false, :force => true do |t|
     t.string "Product_ID",      :limit => 15, :null => false
     t.date   "D1"
@@ -710,21 +764,12 @@ ActiveRecord::Schema.define(:version => 20131002000333) do
 
   add_index "sysdiagrams", ["principal_id", "name"], :name => "UK_principal_name", :unique => true
 
-  create_table "t_LocationProducts", :id => false, :force => true do |t|
-    t.string "Barcode", :limit => 20, :null => false
-  end
-
   create_table "t_POList", :id => false, :force => true do |t|
     t.string "Product_ID", :limit => 15, :null => false
   end
 
   create_table "t_ProdList", :id => false, :force => true do |t|
     t.string "Product_ID", :limit => 15, :null => false
-  end
-
-  create_table "t_Suppliers_Products", :id => false, :force => true do |t|
-    t.integer "Supplier_ID"
-    t.string  "Product_ID",  :limit => 25
   end
 
   create_table "t_Temp1", :id => false, :force => true do |t|
