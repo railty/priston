@@ -1,35 +1,44 @@
 #require 'gmail'
 #require "google_drive"
 
+def g_session
+	$session = GoogleDrive.login(config['email_user'], config['email_password']) if $session == nil
+	return $session
+end
+
 def g_upload(file, label)
 	logger.info("uploading #{file} into #{label}")
 	g_delete(label)
-	session = GoogleDrive.login(config['email_user'], config['email_password'])
-	session.upload_from_file(file, label, :convert => false)
+	g_session.upload_from_file(file, label, :convert => false)
 end
 
 def g_download(file, label)
 	logger.info("downloading #{label} into #{file}")
-	session = GoogleDrive.login(config['email_user'], config['email_password'])
-	file = session.file_by_title(label).download_to_file(file)
+	
+	f = g_session.file_by_title(label)
+	if f == nil then
+		logger.info("#{label} not exist in gdrive")
+		return false
+	else
+		f.download_to_file(file)
+		return true
+	end
 end
 
 def g_delete(label)
 	logger.info("delete #{label} from gdrive")
-	session = GoogleDrive.login(config['email_user'], config['email_password'])
-	file = session.file_by_title(label)
-	if file == nil then
+	f = g_session.file_by_title(label)
+	if f == nil then
 		return false
 	else
-		file.delete
+		f.delete
 		return true
 	end
 end
 
 def g_exist?(label)
-	session = GoogleDrive.login(config['email_user'], config['email_password'])
-	file = session.file_by_title(label)
-	if file == nil then
+	f = g_session.file_by_title(label)
+	if f == nil then
 		logger.info("#{label} not exist in gdrive")
 		return false
 	else
@@ -40,8 +49,7 @@ end
 
 def g_rename(old_label, new_label)
 	logger.info("rename #{old_label} to #{new_label} in gdrive")
-	session = GoogleDrive.login(config['email_user'], config['email_password'])
-	session.file_by_title(old_label).title = new_label
+	g_session.file_by_title(old_label).title = new_label
 end
 
 #in case there are more reports, use the latest one

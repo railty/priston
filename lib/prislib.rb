@@ -144,7 +144,7 @@ def restore_pris(host)
 	logger.info("restore database")
 	latest_full_bak_7z = "#{$data_path}pris_#{host}_full_#{today_str}.bak.7z"
 
-	g_download(latest_full_bak_7z, "pris_#{host}_full_#{today_str}")
+	return false if !g_download(latest_full_bak_7z, "pris_#{host}_full_#{today_str}")
 	if latest_full_bak_7z =~ /(\d+)_(\d+)_(\d+)/ then
 		full_dt = Time.local($1, $2, $3)
 		full_name = "pris_#{host}_full_#{$1}_#{$2}_#{$3}.bak"
@@ -191,4 +191,141 @@ def check_pris_db_status(db)
 
 	return true if date_str==today_str or date_str==yesterday_str
 	return false		
+end
+
+class Db
+	@@obj_types = {'P '=>'Procedure', 'FN'=> 'Function', 'V '=> 'View', 'U '=>'Table'}
+	def initialize(host=nil, name='pris')
+		host ||= hostname
+		@host = host
+		@name = name
+	end
+
+	def run_sql_files(sql_folder)
+		Dir["#{sql_folder}/*.sql"].each do |sql_file|
+			run_sql_file(sql_file)
+		end
+	end
+
+	def run_sql_file(sql_file)
+		logger.info("running #{sql_file}")
+		sql = File.read(sql_file)
+		run_sql(sql)
+	end
+
+	def run_sql(sql)
+		logger.info(sql)
+		
+		if @conn == nil
+			@conn = TinyTds::Client.new(:username => config['username'], :password => config['password'], :host => @host, :database => @name)
+			@conn.execute("set textsize 65536")
+		end
+
+		result = @conn.execute(sql)
+		yield result if block_given?
+		result.do
+	end
+
+	def objs
+		if @objs == nil then
+			@objs = []
+			run_sql("select name, object_id, type from sys.objects where type in ('#{@@obj_types.keys.join("', '")}') and name not like 'sp_%' and name not like 'fn_%' and name not like 'sys%'") do |result|
+				result.each do |row|
+					@objs << {name:row['name'], id:row['object_id'], type: @@obj_types[row['type']]}
+				end
+			end
+		end
+		return @objs
+	end
+
+	def drop_objs(obj_type)
+		if obj_type == 'Table' then
+			puts "not implemented"
+		else
+			objs.each do |obj|
+				run_sql("drop #{obj_type} #{obj[:name]}") if obj[:type] == obj_type
+			end
+		end
+	end
+
+	def dump_result(result)
+		header = true
+		strs = []
+		result.each do |r|
+			str_k = ''
+			str_v = ''
+			r.keys.each do |k|
+				str_k = str_k + "#{k}\t"
+				str_v = str_v + "#{r[k]}\t"
+			end
+			if header then
+				strs << str_k 
+				header = false
+			end
+			strs << str_v
+		end
+		return strs
+	end
+	
+	def dump_objs(obj_type)
+		folder = "tmp/#{@host}/#{@name}/#{obj_type}"
+		FileUtils.mkdir_p folder
+		objs.each do |obj|
+			if obj[:type] == obj_type then
+				f = File.open("#{folder}/#{obj[:name]}.sql", "w")
+				sql = ''
+				if obj_type == 'Table' then
+					sql = "SELECT COLUMN_NAME, COLUMN_DEFAULT, IS_NULLABLE, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, CHARACTER_OCTET_LENGTH, NUMERIC_PRECISION, NUMERIC_PRECISION_RADIX, NUMERIC_SCALE, DATETIME_PRECISION FROM INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='#{obj[:name]}' ORDER BY COLUMN_NAME"
+					run_sql(sql) do |result|
+						f.puts dump_result(result)
+					end
+					f.puts "-------------------------------"
+					sql = "SELECT CONSTRAINT_NAME, CONSTRAINT_TYPE FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS where TABLE_NAME = '#{obj[:name]}' ORDER BY CONSTRAINT_NAME"
+					run_sql(sql) do |result|
+						f.puts dump_result(result)
+					end
+				else
+					sql = "select object_definition(object_id('#{obj[:name]}')) as definition"
+					run_sql(sql) do |result|
+						result.each do |r|
+							f.puts r['definition']
+						end
+					end
+				end
+				f.close
+			end
+		end
+	end
+
+	def method_missing(m, *args, &block)
+		method = m.to_s
+		@@obj_types.each do |obj_type_short, obj_type|
+			if method.capitalize.chop == obj_type then
+				return objs.select{|o| o[:type]==obj_type}.collect{|o| o[:name]}
+			end
+			
+			if method == "drop_#{obj_type.downcase.pluralize}" then
+				return drop_objs(obj_type)
+			end
+			
+			if method == "dump_#{obj_type.downcase.pluralize}" then
+				return dump_objs(obj_type)
+			end
+		end
+					
+		super
+	end
+
+	
+	def test
+		run_sql("select definition from sys.sql_modules where object_id = object_id('refresh_pos2')") do |result|
+			result.each do |r|
+				puts r['definition']
+			end
+		end
+	end
+	
+	def to_s
+		str = "host = #{@host}, name = #{@name}"
+	end
 end

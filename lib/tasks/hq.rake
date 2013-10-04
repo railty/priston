@@ -3,22 +3,31 @@ require 'ofcmail'
 
 namespace :hq do
 
-	desc "Watch database status"
+	desc "test"
 	task :test do
-		session = GoogleDrive.login(config['email_user'], config['email_password'])
-		for file in session.files
-			p file.title
-			p file
-		end
-
-g_delete('pris_alp_full_2013_10_3_failed')
-	
-		#backup_pris('alp', 'alp')
+		#Db.new(nil, 'alp').dump_functions
+		#Db.new(nil, 'alp').dump_procedures
+		#Db.new(nil, 'alp').dump_views
+		
+		#Db.new(nil, 'ofmm').dump_functions
+		#Db.new(nil, 'ofmm').dump_procedures
+		#Db.new(nil, 'ofmm').dump_views
+		
+		#Db.new(nil, 'ofmm').drop_functions
+		#Db.new(nil, 'ofmm').drop_procedures
+		#Db.new(nil, 'ofmm').drop_views
+		
+		#Db.new(nil, 'ofmm').run_sql_files("tmp/#{hostname}/alp/function")
+		#Db.new(nil, 'ofmm').run_sql_files("tmp/#{hostname}/alp/procedure")
+		#Db.new(nil, 'ofmm').run_sql_files("tmp/#{hostname}/alp/view")
+		
+		Db.new(nil, 'alp').dump_tables
+		Db.new(nil, 'ofmm').dump_tables
+		
 	end
 	
 	desc "Watch database status"
 	task :watch_status do
-
 		body = ""
 		['alp',  'ofmm'].each do |store|
 			if check_pris_db_status(store) then
