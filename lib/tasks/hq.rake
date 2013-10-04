@@ -29,7 +29,7 @@ namespace :hq do
 	desc "Watch database status"
 	task :watch_status do
 		body = ""
-		['alp',  'ofmm'].each do |store|
+		['alp',  'ofmm', 'ofc'].each do |store|
 			if check_pris_db_status(store) then
 				body = body + "#{store} OK\n"				
 			else
@@ -46,7 +46,7 @@ namespace :hq do
 		host = 'all' if host == nil
 		host.downcase!
 		if host == 'all' then
-			hosts = ['alp', 'ofmm'] 
+			hosts = ['alp', 'ofmm', 'ofc'] 
 		else
 			hosts = [host]
 		end

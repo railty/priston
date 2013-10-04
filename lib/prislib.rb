@@ -156,9 +156,9 @@ def restore_pris(host)
 	
 	status = check_pris_db_status(host)
 	if status then
-		g_rename("pris_#{host}_full_#{today_str}", "pris_#{host}_full_#{today_str}_success")
+		#g_rename("pris_#{host}_full_#{today_str}", "pris_#{host}_full_#{today_str}_success")
 	else
-		g_rename("pris_#{host}_full_#{today_str}", "pris_#{host}_full_#{today_str}_failed")
+		#g_rename("pris_#{host}_full_#{today_str}", "pris_#{host}_full_#{today_str}_failed")
 	end
 	return status
 end
