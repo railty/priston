@@ -11,5 +11,11 @@ namespace :job do
 		job = args[:job].downcase
 		delete_job(job)
 	end
+	
+	desc "run windows job"
+	task :run, :job do |t, args|
+		job = args[:job].downcase
+		run_job(job)
+	end
 end
 

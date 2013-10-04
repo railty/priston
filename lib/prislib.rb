@@ -2,7 +2,10 @@ $sqldata_path = "D:\\SQLData\\"
 $data_path = "D:\\Pris\\Data\\"
 
 def logger
-	Rails.logger = Logger.new("log/pris_#{hostname}_#{Time.now.strftime("%Y_%m_%d") }.log") if Rails.logger == nil
+	if Rails.logger == nil then
+		Rails.logger = Logger.new("log/pris_#{hostname}_#{Time.now.strftime("%Y_%m_%d") }.log") 
+		logger.formatter = Logger::Formatter.new
+	end
 	return Rails.logger
 end
 
@@ -168,6 +171,10 @@ end
 
 def delete_job(job)
 	run("schtasks /delete /tn #{job} /f")
+end
+
+def run_job(job)
+	run("schtasks /run /tn #{job}")
 end
 
 def refresh_pos
