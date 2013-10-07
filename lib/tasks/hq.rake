@@ -1,10 +1,20 @@
-require 'prislib'
-require 'ofcmail'
-
 namespace :hq do
 
 	desc "test"
 	task :test do
+		backup = Db.new(nil, 'ofmn').create_backup
+		#backup.backup(true)
+		#backup.zip(true)
+		#backup.upload
+		
+		if backup.download(true) and backup.unzip(true) then
+			backup.restore
+		end
+		if backup.check_db_status then
+			p "ok"
+		end
+		
+				
 		#Db.new(nil, 'alp').dump_functions
 		#Db.new(nil, 'alp').dump_procedures
 		#Db.new(nil, 'alp').dump_views
@@ -21,8 +31,8 @@ namespace :hq do
 		#Db.new(nil, 'ofmm').run_sql_files("tmp/#{hostname}/alp/procedure")
 		#Db.new(nil, 'ofmm').run_sql_files("tmp/#{hostname}/alp/view")
 		
-		Db.new(nil, 'alp').dump_tables
-		Db.new(nil, 'ofmm').dump_tables
+#		Db.new(nil, 'alp').dump_tables
+#		Db.new(nil, 'ofmm').dump_tables
 	end
 	
 	desc "Watch database status"

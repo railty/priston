@@ -1,3 +1,6 @@
+require 'gdrive'
+require 'ofcmail'
+
 $sqldata_path = "D:\\SQLData\\"
 $data_path = "D:\\Pris\\Data\\"
 
@@ -193,8 +196,108 @@ def check_pris_db_status(db)
 	return false		
 end
 
+class Backup
+	include GDrive
+	def initialize(db, date=Date.today)
+		@db = db
+		@date = date
+	end
+
+	#filename definitions
+	def filename_base
+		return "#{@db.host}_#{@db.name}_full_#{@date}"
+	end
+
+	def filename_g
+		return "#{filename_base}"
+	end
+	
+	def filename_g_ready
+		return "#{filename_g}_ready"
+	end
+	
+	def filename_g_success
+		return "#{filename_g}_success"
+	end
+
+	def filename_local
+		return "#{$data_path}#{filename_base}.bak"
+	end
+	
+	def filename_7z
+		return "#{filename_local}.7z"
+	end
+
+	#backup and upload
+	def backup(overwrite=false)
+		return if !check_overwrite(filename_local, overwrite)
+
+		sql = "BACKUP DATABASE [#{@db.name}] TO DISK = N'#{filename_local}' WITH INIT, NAME = N'Pris Full Database Backup at #{@date}'"
+		logger.info("making full backup #{filename_local} on #{@db.host}")
+		run_sql_cmd(sql)
+	end
+	
+	def zip(overwrite=false)
+		return if !check_overwrite(filename_7z, overwrite)
+		run("7z a -t7z -mx9 #{filename_7z} #{filename_local}")
+	end
+
+	def upload
+		return if g_exist?(filename_g_success) or g_exist?(filename_g_ready)
+		g_upload(filename_7z, filename_g)
+		g_rename(filename_g, filename_g_ready)
+	end
+	
+	#download and restore	
+	def download(overwrite=false)
+		return false if !check_overwrite(filename_7z, overwrite)
+		return true if g_download(filename_7z, filename_g_success)
+		return true if g_download(filename_7z, filename_g_ready)
+	end
+
+	def unzip(overwrite=false)
+		return if !check_overwrite(filename_local, overwrite)
+		run("7z x #{filename_7z} -o#{$data_path} -y")
+	end
+
+	def restore
+		run_sql_cmd("RESTORE DATABASE [#{@db.name}] FROM DISK = N'#{filename_local}' WITH MOVE N'Pris' TO N'D:\\SQLDATA\\#{@db.name}.mdf', MOVE N'Pris_log' TO N'D:\\SQLDATA\\#{@db.name}_1.ldf';")
+		run_sql_cmd("use #{@db.name};\r\ngo\r\nsp_change_users_login 'update_one', 'po', 'po' ;\r\ngo\r\n")
+		if check_db_status then
+			g_rename(filename_g_ready, filename_g_success)
+		else
+			g_delete(filename_g_ready)
+		end
+	end
+
+	#overwrite control
+	def check_overwrite(fname, overwrite=false)
+		return true if !File.exist? fname
+		if (overwrite) then
+			File.delete fname 
+			return true
+		else
+			logger.error "#{fname} already exists, exit"
+			return false
+		end
+	end
+	
+	def check_db_status
+		sql = "Select Max(Date) From #{@db.name}.dbo.POS_Sales;"
+		result = run_sql_cmd(sql)
+		date_str = result.scan(/\d\d\d\d-\d\d-\d\d/)[0]
+		
+		today_str = (Time.now).strftime("%Y-%m-%d")
+		yesterday_str = (Time.now-86400).strftime("%Y-%m-%d")
+
+		return true if date_str==today_str or date_str==yesterday_str
+		return false		
+	end
+end
+
 class Db
 	@@obj_types = {'P '=>'Procedure', 'FN'=> 'Function', 'V '=> 'View', 'U '=>'Table'}
+	attr_reader :host, :name
 	def initialize(host=nil, name='pris')
 		host ||= hostname
 		@host = host
@@ -316,16 +419,12 @@ class Db
 		super
 	end
 
-	
-	def test
-		run_sql("select definition from sys.sql_modules where object_id = object_id('refresh_pos2')") do |result|
-			result.each do |r|
-				puts r['definition']
-			end
-		end
+	def create_backup
+		backup = Backup.new(self)
+		return backup
 	end
 	
 	def to_s
-		str = "host = #{@host}, name = #{@name}"
+		str = "#{@name} at #{@host}"
 	end
 end
