@@ -23,11 +23,10 @@ namespace :hq do
 		
 		Db.new(nil, 'alp').dump_tables
 		Db.new(nil, 'ofmm').dump_tables
-		
 	end
 	
 	desc "Watch database status"
-	task :watch_status do
+	task :check_status do
 		body = ""
 		['alp',  'ofmm', 'ofc'].each do |store|
 			if check_pris_db_status(store) then
@@ -36,7 +35,7 @@ namespace :hq do
 				body = body + "#{store} failed\n"				
 			end
 		end
-		puts body
+		body = body + " sent by #{hostname} at #{Time.now}"
 		send_email('shawn.ning@list4d.com', 'hq db status', body)
 	end
 
@@ -51,16 +50,24 @@ namespace :hq do
 			hosts = [host]
 		end
 		
-		body = ""
 		hosts.each do |store|
-			if restore_pris(store) then
-				body = body + "#{store} OK\n"
-			else
-				body = body + "#{store} failed\n"
-			end
+			restore_pris(store)
 		end
-		puts body
-		send_email('shawn.ning@list4d.com', 'hq db status', body)
+	end
+	
+        desc "daily job"
+	task :daily_job => [:restore_pris_dbs, :check_status] do
+		logger.info "done daily job"
+	end
+
+        desc "job every 5 minutes"
+	task :minutes_5_job do
+		if (hostname=='hqsvr2') then
+			setip('hq')
+		else
+			setip
+			connect_hq
+		end
 	end
 end
 

@@ -17,5 +17,10 @@ namespace :job do
 		job = args[:job].downcase
 		run_job(job)
 	end
+	
+        desc "reboot"
+        task :reboot do
+                reboot
+        end
 end
 

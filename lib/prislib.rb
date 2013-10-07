@@ -69,12 +69,12 @@ def get_latest_file(pattern)
 	return latest_file
 end
 
-def setip
+def setip(host=hostname)
 	uri = URI.parse("http://tst.orientalfoods.ca")
 	http = Net::HTTP.new(uri.host, uri.port)
-	request = Net::HTTP::Get.new("/setip?host=#{hostname}")
+	request = Net::HTTP::Get.new("/setip?host=#{host}")
 	response = http.request(request)
-	logger.info("set ip of #{hostname}")
+	logger.info("set ip of #{host}")
 	logger.info(response.body)
 end
 

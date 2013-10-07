@@ -1,11 +1,6 @@
 require 'prislib'
 
 namespace :store do
-        desc "reboot"
-        task :reboot do
-                reboot
-        end
-
 	desc "copy pos database"
 	task :copy_pos_data do
 		copy_pos_data
