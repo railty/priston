@@ -66,12 +66,12 @@ namespace :hq do
 	end
 	
         desc "daily job"
-	task :daily_job => [:restore_pris_dbs, :check_status] do
+	task :daily => [:restore_pris_dbs, :check_status] do
 		logger.info "done daily job"
 	end
 
         desc "job every 5 minutes"
-	task :minutes_5_job do
+	task :minutes_5 do
 		if (hostname=='hqsvr2') then
 			setip('hq')
 		else

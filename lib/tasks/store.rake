@@ -17,7 +17,7 @@ namespace :store do
 	end
 
         desc "job every 5 minutes"
-	task :minutes_5_job do
+	task :minutes_5 do
 		refresh_pos
 		setip
 		connect_hq

@@ -22,5 +22,16 @@ namespace :job do
         task :reboot do
                 reboot
         end
+	
+        desc "daily job"
+	task :daily do
+		Rake::Task["#{host_type}:daily"].invoke
+	end
+
+        desc "job every 5 minutes"
+	task :minutes_5 do
+		Rake::Task["#{host_type}:minutes_5"].invoke
+	end
+	
 end
 

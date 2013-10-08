@@ -41,6 +41,11 @@ def hostname
 	return hostname
 end
 
+def host_type
+	return 'hq' if hostname=='hqsvr2' or hostname=='bak'
+	return 'store'
+end
+
 def compress(i, o)
 	run("7z a -t7z -mx9 #{o} #{i}")
 end
