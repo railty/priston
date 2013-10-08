@@ -210,7 +210,7 @@ class Backup
 
 	#filename definitions
 	def filename_base
-		return "#{@db.host}_#{@db.name}_full_#{@date}"
+		return "#{@db.host}_#{@db.name}_full_#{@date.strftime('%u')}"
 	end
 
 	def filename_g

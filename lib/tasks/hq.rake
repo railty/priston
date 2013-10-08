@@ -2,17 +2,20 @@ namespace :hq do
 
 	desc "test"
 	task :test do
+		include GDrive
+		#g_list
 		backup = Db.new(nil, 'ofmn').create_backup
+		puts backup.filename_local
 		#backup.backup(true)
 		#backup.zip(true)
 		#backup.upload
 		
-		if backup.download(true) and backup.unzip(true) then
-			backup.restore
-		end
-		if backup.check_db_status then
-			p "ok"
-		end
+		#if backup.download(true) and backup.unzip(true) then
+		#	backup.restore
+		#end
+		#if backup.check_db_status then
+		#	p "ok"
+		#end
 		
 				
 		#Db.new(nil, 'alp').dump_functions
