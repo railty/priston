@@ -127,48 +127,21 @@ def copy_pos_data
 	run_sql_cmd("Pris.Dbo.Build_Inventory")
 end
 
-def backup_pris(host=hostname, db='Pris')
-	t=Time.now
-	dt = "#{t.year}_#{t.month}_#{t.day}"
-
-	return if g_exist?("pris_#{host}_full_#{dt}_success")
-
-	filename = "#{$data_path}pris_#{host}_full_#{dt}.bak"
-	compress_filename = "#{filename}.7z"
-
-	File.delete filename if File.exist? filename
-	File.delete compress_filename if File.exist? compress_filename
-
-	sql = "BACKUP DATABASE [#{db}] TO DISK = N'#{filename}' WITH INIT, NAME = N'Pris Full Database Backup at #{dt}'"
-	logger.info("making full backup #{filename} on #{host}")
-	run_sql_cmd(sql)
-	compress(filename, compress_filename)
-	g_upload(compress_filename, "pris_#{host}_full_#{dt}")
+def backup_pris
+	backup = Db.new(nil).create_backup
+	backup.backup(true)
+	backup.zip(true)
+	backup.upload
 end
 
 def restore_pris(host)
-	return true if check_pris_db_status(host)
-	today_str = (Time.now).strftime("%Y_%-m_%-d")
-	logger.info("restore database")
-	latest_full_bak_7z = "#{$data_path}pris_#{host}_full_#{today_str}.bak.7z"
-
-	return false if !g_download(latest_full_bak_7z, "pris_#{host}_full_#{today_str}")
-	if latest_full_bak_7z =~ /(\d+)_(\d+)_(\d+)/ then
-		full_dt = Time.local($1, $2, $3)
-		full_name = "pris_#{host}_full_#{$1}_#{$2}_#{$3}.bak"
-	end
-
-	decompress(latest_full_bak_7z)		
-	run_sql_cmd("RESTORE DATABASE [#{host}] FROM DISK = N'D:\\Temp\\#{full_name}' WITH MOVE N'Pris' TO N'D:\\SQLDATA\\#{host}.mdf', MOVE N'Pris_log' TO N'D:\\SQLDATA\\#{host}_1.ldf';")
-	run_sql_cmd("use #{host};\r\ngo\r\nsp_change_users_login 'update_one', 'po', 'po' ;\r\ngo\r\n")
+	backup = Db.new(nil, host).create_backup
+	return true if backup.check_db_status
 	
-	status = check_pris_db_status(host)
-	if status then
-		#g_rename("pris_#{host}_full_#{today_str}", "pris_#{host}_full_#{today_str}_success")
-	else
-		#g_rename("pris_#{host}_full_#{today_str}", "pris_#{host}_full_#{today_str}_failed")
+	if backup.download(true) and backup.unzip(true) then
+		backup.restore
 	end
-	return status
+	return backup.check_db_status
 end
 
 def create_job(job, u = nil, p = nil)
@@ -183,6 +156,10 @@ end
 
 def run_job(job)
 	run("schtasks /run /tn #{job}")
+end
+
+def list_job
+	run("schtasks /query")
 end
 
 def refresh_pos

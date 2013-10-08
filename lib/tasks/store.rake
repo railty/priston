@@ -12,7 +12,7 @@ namespace :store do
 	end
 
         desc "daily job"
-	task :daily_job => [:copy_pos_data, :backup_pris] do
+	task :daily => [:copy_pos_data, :backup_pris] do
 		puts "done daily job"
 	end
 

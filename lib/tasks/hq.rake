@@ -38,20 +38,6 @@ namespace :hq do
 #		Db.new(nil, 'ofmm').dump_tables
 	end
 	
-	desc "Watch database status"
-	task :check_status do
-		body = ""
-		['alp',  'ofmm', 'ofc'].each do |store|
-			if check_pris_db_status(store) then
-				body = body + "#{store} OK\n"				
-			else
-				body = body + "#{store} failed\n"				
-			end
-		end
-		body = body + " sent by #{hostname} at #{Time.now}"
-		send_email('shawn.ning@list4d.com', 'hq db status', body)
-	end
-
 	desc "restore pris database, use all for all stores"
 	task :restore_pris_dbs, :host do |t, args|
 		host = args[:host]
@@ -63,9 +49,16 @@ namespace :hq do
 			hosts = [host]
 		end
 		
+		body = ""
 		hosts.each do |store|
-			restore_pris(store)
+			if restore_pris(store) then
+				body = body + "#{store} OK\n"				
+			else
+				body = body + "#{store} failed\n"				
+			end
 		end
+		body = body + " sent by #{hostname} at #{Time.now}"
+		send_email('shawn.ning@list4d.com', 'hq db status', body)
 	end
 	
         desc "daily job"
