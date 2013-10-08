@@ -59,7 +59,7 @@ module GDrive
 	end
 
 	def g_list
-		logger.info("delete everything in gdrive")
+		logger.info("list files in gdrive")
 		for file in g_session.files
 			puts file.title
 		end

@@ -45,8 +45,13 @@ namespace :job do
 		list_job
 	end
 
+        desc "update code"
+        task :update_code do
+                run("git pull origin master")
+        end
+
         desc "reboot"
-        task :reboot do
+        task :reboot => [:update_code] do
                 reboot
         end
 	

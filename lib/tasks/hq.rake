@@ -61,6 +61,16 @@ namespace :hq do
 		send_email('shawn.ning@list4d.com', 'hq db status', body)
 	end
 	
+	task :list_backups do
+		include GDrive
+		g_list
+	end
+	
+	task :clear_backups do
+		include GDrive
+		g_clear
+	end
+	
         desc "daily job"
 	task :daily => [:restore_pris_dbs] do
 		logger.info "done daily job"

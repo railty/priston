@@ -140,9 +140,14 @@ def restore_pris(host)
 	
 	backup = Db.new(host).create_backup
 	if backup.download(true) and backup.unzip(true) then
-		svr_backup.restore(backup.filename_local)
+		rc = svr_backup.restore(backup.filename_local)
+		if rc then
+			backup.mark_success
+		else
+			backup.mark_fail
+		end
 	end
-	return backup.check_db_status
+	return svr_backup.check_db_status
 end
 
 def create_job(job, u = nil, p = nil)
@@ -243,14 +248,18 @@ class Backup
 		run("7z x #{filename_7z} -o#{$data_path} -y")
 	end
 
+	def mark_success
+		g_rename(filename_g_ready, filename_g_success)
+	end
+	
+	def mark_fail
+		#g_delete(filename_g_ready)
+	end
+	
 	def restore(fname=filename_local)
 		run_sql_cmd("RESTORE DATABASE [#{@db.name}] FROM DISK = N'#{fname}' WITH MOVE N'Pris' TO N'D:\\SQLDATA\\#{@db.name}.mdf', MOVE N'Pris_log' TO N'D:\\SQLDATA\\#{@db.name}_1.ldf';")
 		run_sql_cmd("use #{@db.name};\r\ngo\r\nsp_change_users_login 'update_one', 'po', 'po' ;\r\ngo\r\n")
-		if check_db_status then
-			g_rename(filename_g_ready, filename_g_success)
-		else
-			#g_delete(filename_g_ready)
-		end
+		return check_db_status 
 	end
 
 	#overwrite control
