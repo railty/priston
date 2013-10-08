@@ -2,6 +2,28 @@ require 'prislib'
 
 namespace :job do
 	desc "create windows job by rake job:create[reboot, user, pass]"
+	task :recreate_all, :user, :password do |t, args|
+		u = args[:user]
+		p = args[:password]
+		if u== nil and p == nil then
+			if hostname=='hqsvr2' then
+				puts "username:"
+				u = STDIN.gets.chop
+				puts "password:"
+				p = STDIN.gets.chop
+			else
+				u = config['job_user']
+				p = config['job_password']
+			end
+		end
+		
+		['reboot', 'minutes_5', 'daily'].each do |job|
+			delete_job(job)
+			create_job(job, u, p)
+		end
+	end
+	
+	desc "create windows job by rake job:create[reboot, user, pass]"
 	task :create, :job, :user, :password do |t, args|
 		create_job(args[:job], args[:user], args[:password])
 	end

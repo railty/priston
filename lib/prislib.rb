@@ -135,11 +135,12 @@ def backup_pris
 end
 
 def restore_pris(host)
-	backup = Db.new(nil, host).create_backup
-	return true if backup.check_db_status
+	svr_backup = Db.new(nil, host).create_backup	
+	return true if svr_backup.check_db_status
 	
+	backup = Db.new(host).create_backup
 	if backup.download(true) and backup.unzip(true) then
-		backup.restore
+		svr_backup.restore(backup.filename_local)
 	end
 	return backup.check_db_status
 end
@@ -242,13 +243,13 @@ class Backup
 		run("7z x #{filename_7z} -o#{$data_path} -y")
 	end
 
-	def restore
-		run_sql_cmd("RESTORE DATABASE [#{@db.name}] FROM DISK = N'#{filename_local}' WITH MOVE N'Pris' TO N'D:\\SQLDATA\\#{@db.name}.mdf', MOVE N'Pris_log' TO N'D:\\SQLDATA\\#{@db.name}_1.ldf';")
+	def restore(fname=filename_local)
+		run_sql_cmd("RESTORE DATABASE [#{@db.name}] FROM DISK = N'#{fname}' WITH MOVE N'Pris' TO N'D:\\SQLDATA\\#{@db.name}.mdf', MOVE N'Pris_log' TO N'D:\\SQLDATA\\#{@db.name}_1.ldf';")
 		run_sql_cmd("use #{@db.name};\r\ngo\r\nsp_change_users_login 'update_one', 'po', 'po' ;\r\ngo\r\n")
 		if check_db_status then
 			g_rename(filename_g_ready, filename_g_success)
 		else
-			g_delete(filename_g_ready)
+			#g_delete(filename_g_ready)
 		end
 	end
 

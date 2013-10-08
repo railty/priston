@@ -22,6 +22,7 @@ end
 
 def send_email(recipients, subject_text, body_text, attachments=[])
 	logger.info("email #{recipients}: #{subject_text}")
+	logger.info(body_text)
 	gmail = Gmail.connect(config['email_user'], config['email_password'])
 	gmail.deliver do
 		to recipients

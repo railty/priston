@@ -3,9 +3,9 @@ namespace :hq do
 	desc "test"
 	task :test do
 		include GDrive
-		#g_list
-		backup = Db.new(nil, 'ofmn').create_backup
-		puts backup.filename_local
+		g_list
+		#backup = Db.new(nil, 'ofmn').create_backup
+		#puts backup.filename_local
 		#backup.backup(true)
 		#backup.zip(true)
 		#backup.upload
@@ -62,7 +62,7 @@ namespace :hq do
 	end
 	
         desc "daily job"
-	task :daily => [:restore_pris_dbs, :check_status] do
+	task :daily => [:restore_pris_dbs] do
 		logger.info "done daily job"
 	end
 
