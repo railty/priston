@@ -60,7 +60,14 @@ namespace :hq do
 		body = body + " sent by #{hostname} at #{Time.now}"
 		send_email('shawn.ning@list4d.com', 'hq db status', body)
 	end
-	
+
+	task :download_logs do
+		include GDrive
+		['alp', 'ofmm', 'ofc', 'bak'].each do |host|
+			g_download(logfile_name(host), logfile_basename(host))
+		end
+	end
+
 	task :list_backups do
 		include GDrive
 		g_list
@@ -72,7 +79,7 @@ namespace :hq do
 	end
 	
         desc "daily job"
-	task :daily => [:restore_pris_dbs] do
+	task :daily => [:restore_pris_dbs, :download_logs] do
 		logger.info "done daily job"
 	end
 

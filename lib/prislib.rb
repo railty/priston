@@ -4,12 +4,25 @@ require 'ofcmail'
 $sqldata_path = "D:\\SQLData\\"
 $data_path = "D:\\Pris\\Data\\"
 
+def logfile_basename(host=hostname)
+	return "log_pris_#{host}_#{Time.now.strftime("%u") }"
+end
+
+def logfile_name(host=hostname)
+	return "log/#{logfile_basename(host)}.log"
+end
+
 def logger
 	if Rails.logger == nil then
-		Rails.logger = Logger.new("log/pris_#{hostname}_#{Time.now.strftime("%Y_%m_%d") }.log") 
+		Rails.logger = Logger.new(logfile_name) 
 		logger.formatter = Logger::Formatter.new
 	end
 	return Rails.logger
+end
+
+def upload_log
+	include GDrive	
+	g_upload(logfile_name, logfile_basename)
 end
 
 def config
