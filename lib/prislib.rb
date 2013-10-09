@@ -240,7 +240,7 @@ class Backup
 	
 	def zip(overwrite=false)
 		return if !check_overwrite(filename_7z, overwrite)
-		run("7z a -t7z -mx9 #{filename_7z} #{filename_local}")
+		run("7z a -t7z -mx9 -p2013 #{filename_7z} #{filename_local}")
 	end
 
 	def upload
@@ -258,7 +258,7 @@ class Backup
 
 	def unzip(overwrite=false)
 		return if !check_overwrite(filename_local, overwrite)
-		run("7z x #{filename_7z} -o#{$data_path} -y")
+		run("7z x #{filename_7z} -o#{$data_path} -y -p2013")
 	end
 
 	def mark_success

@@ -57,6 +57,10 @@ namespace :job do
 
         desc "reboot"
         task :reboot => [:update_code, :upload_log] do
+		if hostname=='alp' or hostname == 'ofc' or hostname == 'ofmm' then
+			Rake::Task["job:recreate_all"].invoke
+		end
+		
                 reboot
         end
 	
