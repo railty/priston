@@ -19,7 +19,8 @@ namespace :job do
 		
 		['reboot', 'minutes_5', 'daily'].each do |job|
 			delete_job(job)
-			create_job(job, u, p)
+			t = config['daily_job_time'] if job == 'daily'
+			create_job(job, u, p, t)	
 		end
 	end
 	

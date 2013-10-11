@@ -163,10 +163,11 @@ def restore_pris(host)
 	return svr_backup.check_db_status
 end
 
-def create_job(job, u = nil, p = nil)
+def create_job(job, u = nil, p = nil, t = nil)
 	u = config['job_user'] if u==nil
 	p = config['job_password'] if p==nil
 	run("schtasks /create /xml jobs\\#{job}.xml /tn #{job} /ru #{u} /rp #{p}")
+	run("schtasks /change /tn #{job} /ru #{u} /rp #{p} /st #{t}") if t!=nil
 end
 
 def delete_job(job)
