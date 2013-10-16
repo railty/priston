@@ -85,12 +85,7 @@ namespace :hq do
 
         desc "job every 5 minutes"
 	task :minutes_5 do
-		if (hostname=='hqsvr2') then
-			setip('hq')
-		else
-			setip
-			connect_hq
-		end
+		setip('hq')
 	end
 end
 

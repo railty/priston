@@ -55,7 +55,8 @@ def hostname
 end
 
 def host_type
-	return 'hq' if hostname=='hqsvr2' or hostname=='bak'
+	return 'hq' if hostname=='hqsvr2'
+	return 'bak' if hostname=='bak'
 	return 'store'
 end
 
