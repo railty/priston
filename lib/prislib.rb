@@ -5,7 +5,7 @@ $sqldata_path = "D:\\SQLData\\"
 $data_path = "D:\\Pris\\Data\\"
 
 def logfile_basename(host=hostname)
-	return "log_pris_#{host}_#{Time.now.strftime("%u") }"
+	return "log_pris_#{host}_#{Time.now.strftime("%d") }"
 end
 
 def logfile_name(host=hostname)
@@ -208,7 +208,7 @@ class Backup
 
 	#filename definitions
 	def filename_base
-		return "#{@db.host}_#{@db.name}_full_#{@date.strftime('%u')}"
+		return "#{@db.host}_#{@db.name}_full_#{@date.strftime('%d')}"
 	end
 
 	def filename_g
