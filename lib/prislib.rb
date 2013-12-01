@@ -329,6 +329,8 @@ class Db
 		if @conn == nil
 			@conn = TinyTds::Client.new(:username => config['username'], :password => config['password'], :host => @host, :database => @name)
 			@conn.execute("set textsize 65536")
+			@conn.execute("set ansi_nulls on")
+			@conn.execute("set ansi_warnings on")
 		end
 
 		result = @conn.execute(sql)

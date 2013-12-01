@@ -4,6 +4,9 @@ namespace :hq do
 	task :test do
 		include GDrive
 		g_list
+		g_download('d:/temp/MBPOSDBBK7.7z', 'MBPOSDBBK7')
+		g_download('d:/temp/MBPOSDBBK6.7z', 'MBPOSDBBK6')
+		g_download('d:/temp/MBPOSDBBK5.7z', 'MBPOSDBBK5')
 		#backup = Db.new(nil, 'ofmn').create_backup
 		#puts backup.filename_local
 		#backup.backup(true)
@@ -86,6 +89,7 @@ namespace :hq do
         desc "job every 5 minutes"
 	task :minutes_5 do
 		setip('hq')
+		Db.new(nil, 'hq').run_sql("exec Check_Connections")
 	end
 end
 
