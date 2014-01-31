@@ -39,4 +39,5 @@ gem 'google_drive'
 
 # To use debugger
 gem 'debugger'
+gem 'sqlite3'
 
