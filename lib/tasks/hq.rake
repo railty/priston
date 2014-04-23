@@ -80,9 +80,16 @@ namespace :hq do
 		include GDrive
 		g_clear
 	end
-	
+
+	task :backup_payment do
+		backup = Db.new(nil, 'payment').create_backup
+		backup.backup(true)
+		backup.zip(true)
+		backup.upload
+	end
+
         desc "daily job"
-	task :daily => [:restore_pris_dbs, :download_logs] do
+	task :daily => [:backup_payment, :restore_pris_dbs, :download_logs] do
 		logger.info "done daily job"
 	end
 
