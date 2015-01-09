@@ -1,6 +1,40 @@
 module GDrive
+	def g_create_token
+    #1. login google using the approprate account
+    #2. goto https://console.developers.google.com, create a project if needed.
+    #3. goto project->apis and enable drive api
+    #4. goto project->credentials, and create a new client id, using native application (others)
+		client = Google::APIClient.new
+    auth = client.authorization
+    auth.client_id = '309955991766-v3epsgk0rrsq1jaevcdni46kurimboim.apps.googleusercontent.com'
+    auth.client_secret = 'CAkdEh309oXyNViISkoeGrNH'
+    auth.scope = "https://www.googleapis.com/auth/drive"
+    auth.redirect_uri = "urn:ietf:wg:oauth:2.0:oob"
+    print("1. Open this page:\n%s\n\n" % auth.authorization_uri)
+    print("2. Enter the authorization code shown in the page: ")
+    auth.code = $stdin.gets.chomp
+
+    auth.fetch_access_token!
+    access_token = auth.access_token
+    puts access_token
+	end
+
 	def g_session
-		$session = GoogleDrive.login(config['email_user'], config['email_password']) if $session == nil
+		if $session == nil then
+			if RUBY_VERSION >= '2' then
+        client = Google::APIClient.new(:application_name => 'priston', :application_version => '1.0.0')
+        auth = client.authorization
+        auth.client_id = config['email_client_id']
+        auth.client_secret = config['email_client_secret']
+        auth.scope = "https://www.googleapis.com/auth/drive"
+        auth.redirect_uri = "urn:ietf:wg:oauth:2.0:oob"
+        auth.refresh_token = config['email_refresh_token']
+        auth.refresh! 
+        $session = GoogleDrive.login_with_oauth(auth.access_token)
+			else
+				$session = GoogleDrive.login(config['email_user'], config['email_password']) 
+			end
+		end
 		return $session
 	end
 

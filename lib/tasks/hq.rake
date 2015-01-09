@@ -4,9 +4,9 @@ namespace :hq do
 	task :test do
 		include GDrive
 		g_list
-		g_download('d:/temp/MBPOSDBBK7.7z', 'MBPOSDBBK7')
-		g_download('d:/temp/MBPOSDBBK6.7z', 'MBPOSDBBK6')
-		g_download('d:/temp/MBPOSDBBK5.7z', 'MBPOSDBBK5')
+		#g_download('d:/temp/MBPOSDBBK7.7z', 'MBPOSDBBK7')
+		#g_download('d:/temp/MBPOSDBBK6.7z', 'MBPOSDBBK6')
+		#g_download('d:/temp/MBPOSDBBK5.7z', 'MBPOSDBBK5')
 		#backup = Db.new(nil, 'ofmn').create_backup
 		#puts backup.filename_local
 		#backup.backup(true)
@@ -87,8 +87,15 @@ namespace :hq do
 		backup.zip(true)
 		backup.upload
 	end
+  
+	task :restore_payment do
+		backup = Db.new('hqsvr2', 'payment').create_backup
+    if backup.download(true) and backup.unzip(true) then
+      rc = backup.restore(backup.filename_local, 'Payment')
+    end
+	end
 
-        desc "daily job"
+  desc "daily job"
 	task :daily => [:backup_payment, :restore_pris_dbs, :download_logs] do
 		logger.info "done daily job"
 	end

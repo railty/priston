@@ -271,8 +271,8 @@ class Backup
 		#g_delete(filename_g_ready)
 	end
 	
-	def restore(fname=filename_local)
-		run_sql_cmd("RESTORE DATABASE [#{@db.name}] FROM DISK = N'#{fname}' WITH MOVE N'Pris' TO N'D:\\SQLDATA\\#{@db.name}.mdf', MOVE N'Pris_log' TO N'D:\\SQLDATA\\#{@db.name}_1.ldf';")
+	def restore(fname=filename_local, dbname='Pris')
+		run_sql_cmd("RESTORE DATABASE [#{@db.name}] FROM DISK = N'#{fname}' WITH MOVE N'#{dbname}' TO N'D:\\SQLDATA\\#{@db.name}.mdf', MOVE N'#{dbname}_log' TO N'D:\\SQLDATA\\#{@db.name}_1.ldf';")
 		run_sql_cmd("use #{@db.name};\r\ngo\r\nsp_change_users_login 'update_one', 'po', 'po' ;\r\ngo\r\n")
 		return check_db_status 
 	end
