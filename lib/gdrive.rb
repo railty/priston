@@ -21,19 +21,15 @@ module GDrive
 
 	def g_session
 		if $session == nil then
-			if RUBY_VERSION >= '2' then
-        client = Google::APIClient.new(:application_name => 'priston', :application_version => '1.0.0')
-        auth = client.authorization
-        auth.client_id = config['email_client_id']
-        auth.client_secret = config['email_client_secret']
-        auth.scope = "https://www.googleapis.com/auth/drive"
-        auth.redirect_uri = "urn:ietf:wg:oauth:2.0:oob"
-        auth.refresh_token = config['email_refresh_token']
-        auth.refresh! 
-        $session = GoogleDrive.login_with_oauth(auth.access_token)
-			else
-				$session = GoogleDrive.login(config['email_user'], config['email_password']) 
-			end
+			client = Google::APIClient.new(:application_name => 'priston', :application_version => '1.0.0')
+			auth = client.authorization
+			auth.client_id = config['email_client_id']
+			auth.client_secret = config['email_client_secret']
+			auth.scope = "https://www.googleapis.com/auth/drive"
+			auth.redirect_uri = "urn:ietf:wg:oauth:2.0:oob"
+			auth.refresh_token = config['email_refresh_token']
+			auth.refresh! 
+			$session = GoogleDrive.login_with_oauth(auth.access_token)
 		end
 		return $session
 	end
