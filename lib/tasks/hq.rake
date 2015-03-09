@@ -1,3 +1,6 @@
+def test_itemfile
+	puts "1111"
+end
 namespace :hq do
 
 	desc "test"
@@ -47,7 +50,7 @@ namespace :hq do
 		host = 'all' if host == nil
 		host.downcase!
 		if host == 'all' then
-			hosts = ['alp', 'ofmm', 'ofc'] 
+			hosts = ['alp', 'ofmm', 'ofc', 'ohs'] 
 		else
 			hosts = [host]
 		end
@@ -87,6 +90,13 @@ namespace :hq do
 		backup.zip(true)
 		backup.upload
 	end
+	
+	task :backup_pris do
+		backup = Db.new(nil, 'pris').create_backup
+		backup.backup(true)
+		backup.zip(true)
+		backup.upload
+	end
   
 	task :restore_payment do
 		backup = Db.new('hqsvr2', 'payment').create_backup
@@ -95,8 +105,8 @@ namespace :hq do
     end
 	end
 
-  desc "daily job"
-	task :daily => [:backup_payment, :restore_pris_dbs, :download_logs] do
+	desc "daily job"
+	task :daily => [:backup_pris, :backup_payment, :restore_pris_dbs, :download_logs] do
 		logger.info "done daily job"
 	end
 
@@ -104,6 +114,7 @@ namespace :hq do
 	task :minutes_5 do
 		setip('hq')
 		Db.new(nil, 'hq').run_sql("exec Check_Connections")
+		test_itemfile
 	end
 end
 

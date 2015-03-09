@@ -1,3 +1,4 @@
+require 'fileutils'
 require 'gdrive'
 require 'ofcmail'
 
@@ -281,6 +282,11 @@ class Backup
 	def check_overwrite(fname, overwrite=false)
 		return true if !File.exist? fname
 		if (overwrite) then
+			if @date.day == 1 then
+				f1_name = "#{$data_path}#{@db.host}_#{@db.name}_full_#{@date.strftime('%b_%d')}.bak.7z"
+				FileUtils.cp(filename_7z, f1_name)
+			end
+			
 			File.delete fname 
 			return true
 		else
